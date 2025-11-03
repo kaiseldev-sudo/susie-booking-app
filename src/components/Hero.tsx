@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
-const heroVideo = "https://www.pexels.com/download/video/10199074/";
+const heroVideo = "https://www.pexels.com/download/video/5271945/";
 
 export const Hero = () => {
   return (

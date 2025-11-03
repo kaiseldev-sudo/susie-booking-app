@@ -57,8 +57,13 @@ const services = [
   },
   {
     value: "custom-backdrops",
-    label: "Custom Backdrops",
+    label: "Mirror Booth",
     description: "Curated collection of elegant backdrops",
+  },
+  {
+    value: "micro-photo-booth",
+    label: "Micro Photo Booth",
+    description: "Compact booth perfect for intimate spaces and pop-up events",
   },
 ];
 

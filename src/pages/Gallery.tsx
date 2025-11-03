@@ -203,7 +203,7 @@ export default function Gallery() {
                   return (
                     <Card
                       key={image.id}
-                      className={`${image.span} ${heightClass} ${borderRadius} ${borderStyle} border-0 shadow-luxury hover:shadow-soft transition-all duration-500 overflow-hidden group cursor-pointer relative animate-fade-in hover:z-10`}
+                      className={`${image.span} ${heightClass} ${borderRadius} ${borderStyle} border-0 shadow-luxury hover:shadow-soft transition-all duration-500 overflow-hidden group relative animate-fade-in hover:z-10`}
                       style={{ animationDelay }}
                     >
                       <div className="relative w-full h-full">
@@ -227,7 +227,6 @@ export default function Gallery() {
                         {/* Decorative accent for featured items */}
                         {isFeatured && (
                           <div className="absolute top-0 left-0 w-full h-full">
-                            <div className="absolute top-4 right-4 w-2 h-2 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             <div className="absolute bottom-4 left-4 w-12 h-0.5 bg-primary/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           </div>
                         )}
@@ -262,12 +261,7 @@ export default function Gallery() {
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                         </div>
                         
-                        {/* Creative corner accent (rotating on some items) */}
-                        {index % 4 === 0 && (
-                          <div className="absolute top-0 right-0 w-16 h-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                            <div className="absolute top-2 right-2 w-8 h-8 border-t-2 border-r-2 border-primary/60 transform rotate-45" />
-                          </div>
-                        )}
+                        {/* Removed decorative corner accent to avoid arrow-like hover effect */}
                       </div>
                     </Card>
                   );
