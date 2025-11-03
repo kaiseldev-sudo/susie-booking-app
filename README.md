@@ -1,73 +1,105 @@
-# Welcome to your Lovable project
+# Susie Booking App
 
-## Project info
+Modern React app for a photo/booth booking experience with availability checks, rich gallery/album views, FAQs, and contact flow. Built with Vite, TypeScript, Tailwind CSS, and shadcn-ui components.
 
-**URL**: https://lovable.dev/projects/8a92623c-5876-43b4-acfd-11734e573dfe
+## Tech Stack
 
-## How can I edit this code?
+- React 18 + TypeScript (Vite)
+- React Router 6
+- Tailwind CSS + tailwind-merge + tailwindcss-animate
+- shadcn-ui (Radix primitives)
+- TanStack Query
+- Recharts, Embla Carousel, LightGallery, React Photo Album
 
-There are several ways of editing your application.
+## Prerequisites
 
-**Use Lovable**
+- Node.js 18+ and npm
+- Git
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8a92623c-5876-43b4-acfd-11734e573dfe) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Getting Started
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# 1) Clone
+git clone <REPO_URL>
+cd susie-booking-app
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+# 2) Install dependencies
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 3) Start dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+By default Vite serves at http://localhost:5173.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Scripts
 
-**Use GitHub Codespaces**
+- dev: Start the Vite dev server
+- build: Production build
+- build:dev: Development-mode build (useful for debugging prod-like build)
+- preview: Preview the production build locally
+- lint: Run ESLint across the project
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```sh
+npm run dev
+npm run build
+npm run build:dev
+npm run preview
+npm run lint
+```
 
-## What technologies are used for this project?
+## Project Structure
 
-This project is built with:
+```
+src/
+  pages/               # Route components (Home, Gallery, Album, FAQ, etc.)
+  components/          # UI blocks and shadcn-ui wrappers
+  components/ui/       # Generated shadcn-ui primitives
+  hooks/               # Reusable hooks
+  lib/                 # Utilities (e.g., className helpers)
+  assets/              # Images
+  App.tsx              # Router configuration
+  main.tsx             # App bootstrap
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Key routes are configured in `src/App.tsx` using `react-router-dom`.
 
-## How can I deploy this project?
+## Environment Variables
 
-Simply open [Lovable](https://lovable.dev/projects/8a92623c-5876-43b4-acfd-11734e573dfe) and click on Share -> Publish.
+This project runs without required environment variables by default. If you add APIs (email, analytics, etc.), place variables in a `.env` file at the project root per Vite's `import.meta.env` conventions, for example:
 
-## Can I connect a custom domain to my Lovable project?
+```
+VITE_API_BASE_URL="https://api.example.com"
+```
 
-Yes, you can!
+Restart the dev server after changing env values.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Development Notes
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- UI is built with shadcn-ui; add new primitives via the generator pattern if needed.
+- State fetching/caching uses TanStack Query; create a `QueryClient` and use hooks for server data.
+- Tailwind is the primary styling system. Keep styles utility-first; prefer component variants where appropriate.
+
+## Build & Deploy
+
+1. Build the app:
+   ```sh
+   npm run build
+   ```
+2. Preview locally (optional):
+   ```sh
+   npm run preview
+   ```
+3. Deploy the contents of the `dist/` directory to your hosting provider (e.g., Netlify, Vercel, Cloudflare Pages, GitHub Pages, or any static host).
+
+For SPA routing on static hosts, ensure all unmatched routes fallback to `index.html`.
+
+## Troubleshooting
+
+- Port in use: start Vite on another port: `npm run dev -- --port 5174`.
+- Type errors or lint issues: run `npm run lint` and address reported items.
+- Missing images or 404s in the gallery: confirm assets exist in `src/assets` and routes match `src/pages` components.
+
+## License
+
+This project is proprietary to its owner. If you need a license file added or changed, update this section accordingly.
