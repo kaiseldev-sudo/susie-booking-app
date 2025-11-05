@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Heart, Award, Users, Sparkles, Camera, Target, Star, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { PuffLoader } from "react-spinners";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +38,24 @@ const values = [
 ];
 
 export default function AboutUs() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate page loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <PuffLoader size={60} color="hsl(var(--primary))" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -241,9 +261,9 @@ export default function AboutUs() {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       asChild
                     >
-                      <Link to="/check-availability">
+                      <a href="/check-availability">
                         Check Availability
-                      </Link>
+                      </a>
                     </Button>
                     <Button 
                       size="lg" 

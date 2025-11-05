@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { PuffLoader } from "react-spinners";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,8 +88,17 @@ const allAlbums: AlbumRecord[] = [
 export default function Album() {
   const params = useParams();
   const albumId = Number(params.id);
+  const [isLoading, setIsLoading] = useState(true);
 
   const album = useMemo(() => allAlbums.find(a => a.id === albumId), [albumId]);
+
+  useEffect(() => {
+    // Simulate page loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Simple placeholder image set; in real app, fetch album items by id
   const photos = useMemo(() => {
@@ -114,6 +124,14 @@ export default function Album() {
     });
   }, [album]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <PuffLoader size={60} color="hsl(var(--primary))" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -126,13 +144,13 @@ export default function Album() {
                   <BreadcrumbList>
                     <BreadcrumbItem>
                       <BreadcrumbLink asChild>
-                        <Link to="/">Home</Link>
+                        <a href="/">Home</a>
                       </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
                       <BreadcrumbLink asChild>
-                        <Link to="/gallery">Gallery</Link>
+                        <a href="/gallery">Gallery</a>
                       </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
@@ -214,7 +232,7 @@ export default function Album() {
 
               <div className="mt-10 flex justify-center">
                 <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <Link to="/check-availability">Book us for your event</Link>
+                  <a href="/check-availability">Book us for your event</a>
                 </Button>
               </div>
             </div>

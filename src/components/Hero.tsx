@@ -23,14 +23,14 @@ export const Hero = () => {
       {/* Content */}
       <div className="container mx-auto px-4 lg:px-8 relative z-10 pt-20">
         <div className="max-w-3xl">
-          <p className="text-secondary font-medium mb-4 tracking-wide uppercase text-sm animate-fade-in">
+          <p className="text-secondary font-medium tracking-wide uppercase text-sm animate-fade-in">
             Magic starts here
           </p>
           
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold mb-6 animate-fade-in">
-          Susie’s<span className="italic text-primary">Photography</span>
-            <br />
-            Magical Memories
+          <h1 className="font-display text-5xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 animate-fade-in leading-tight break-words">
+            <span className="block sm:inline">Susie's</span> <span className="italic text-primary block sm:inline">Photography</span>
+            <br className="hidden sm:block" />
+            <span className="block">Magical Memories</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl animate-fade-in">
@@ -43,16 +43,16 @@ export const Hero = () => {
               className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-soft text-lg px-8"
               asChild
             >
-              <Link to="/check-availability">
+              <a href="/check-availability">
                 Check Availability
-              </Link>
+              </a>
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
               className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-lg px-8"
             >
-              <Link to="/gallery">View Gallery</Link>
+              <a href="/gallery">View Gallery</a>
             </Button>
           </div>
 

@@ -52,9 +52,9 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><Link to="/about" className="hover:text-primary transition-smooth">About Us</Link></li>
-              <li><Link to="/contact" className="hover:text-primary transition-smooth">Contact</Link></li>
-              <li><Link to="/faq" className="hover:text-primary transition-smooth">FAQ</Link></li>
+              <li><a href="/about" className="hover:text-primary transition-smooth">About Us</a></li>
+              <li><a href="/contact" className="hover:text-primary transition-smooth">Contact</a></li>
+              <li><a href="/faq" className="hover:text-primary transition-smooth">FAQ</a></li>
             </ul>
           </div>
         </div>

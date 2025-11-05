@@ -32,26 +32,26 @@ export const Navbar = () => {
     >
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <Link to="/" className="font-display text-2xl font-bold text-primary">
+          <a href="/" className="font-display text-2xl font-bold text-primary">
             Susie Calvert
-          </Link>
+          </a>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <Link
+              <a
                 key={link.href}
-                to={link.href}
+                href={link.href}
                 className="text-foreground/80 hover:text-primary transition-smooth text-sm font-medium"
               >
                 {link.label}
-              </Link>
+              </a>
             ))}
             <Button 
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
               asChild
             >
-              <Link to="/check-availability">Book Now</Link>
+              <a href="/check-availability">Book Now</a>
             </Button>
           </div>
 
@@ -69,22 +69,22 @@ export const Navbar = () => {
           <div className="md:hidden py-4 border-t border-border bg-background">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
-                <Link
+                <a
                   key={link.href}
-                  to={link.href}
+                  href={link.href}
                   className="text-foreground/80 hover:text-primary transition-smooth py-2 font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.label}
-                </Link>
+                </a>
               ))}
               <Button 
                 className="bg-primary hover:bg-primary/90 text-primary-foreground w-full mt-2"
                 asChild
               >
-                <Link to="/check-availability" onClick={() => setIsMobileMenuOpen(false)}>
+                <a href="/check-availability" onClick={() => setIsMobileMenuOpen(false)}>
                   Book Now
-                </Link>
+                </a>
               </Button>
             </div>
           </div>

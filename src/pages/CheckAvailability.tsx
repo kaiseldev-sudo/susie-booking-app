@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, CheckCircle2, XCircle, Clock, MapPin, Phone, Mail } from "lucide-react";
+import { ClipLoader } from "react-spinners";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -336,7 +337,7 @@ export default function CheckAvailability() {
                       >
                         {isChecking ? (
                           <>
-                            <Clock className="mr-2 h-4 w-4 animate-spin" />
+                            <ClipLoader size={16} color="currentColor" className="mr-2" />
                             Checking Availability...
                           </>
                         ) : (

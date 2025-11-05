@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { HelpCircle, MessageCircle, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { PuffLoader } from "react-spinners";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,6 +131,24 @@ const faqs = [
 ];
 
 export default function FAQ() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate page loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <PuffLoader size={60} color="hsl(var(--primary))" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -205,10 +225,10 @@ export default function FAQ() {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       asChild
                     >
-                      <Link to="/contact">
+                      <a href="/contact">
                         <MessageCircle className="mr-2 h-4 w-4" />
                         Contact Us
-                      </Link>
+                      </a>
                     </Button>
                     <Button 
                       size="lg"
@@ -265,9 +285,9 @@ export default function FAQ() {
                       Check availability and book your date online in just a few clicks.
                     </p>
                     <Button variant="outline" className="w-full" asChild>
-                      <Link to="/check-availability">
+                      <a href="/check-availability">
                         Check Availability
-                      </Link>
+                      </a>
                     </Button>
                   </CardContent>
                 </Card>
@@ -284,9 +304,9 @@ export default function FAQ() {
                       Send us a message with any questions or special requests.
                     </p>
                     <Button variant="outline" className="w-full" asChild>
-                      <Link to="/contact">
+                      <a href="/contact">
                         Get in Touch
-                      </Link>
+                      </a>
                     </Button>
                   </CardContent>
                 </Card>

@@ -76,19 +76,19 @@ export const FAQ = () => {
           <div className="text-center mt-12">
             <p className="text-muted-foreground mb-4">Still have questions?</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link 
-                to="/faq" 
+              <a 
+                href="/faq" 
                 className="text-primary font-semibold hover:underline transition-smooth"
               >
                 View All FAQs →
-              </Link>
+              </a>
               <span className="text-muted-foreground hidden sm:inline">|</span>
-              <Link 
-                to="/contact" 
+              <a 
+                href="/contact" 
                 className="text-primary font-semibold hover:underline transition-smooth"
               >
                 Contact us directly →
-              </Link>
+              </a>
             </div>
           </div>
         </div>

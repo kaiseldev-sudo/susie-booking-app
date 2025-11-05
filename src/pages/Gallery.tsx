@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Image as ImageIcon, Grid3x3, FolderOpen, Calendar } from "lucide-react";
+import { PuffLoader } from "react-spinners";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -128,12 +129,29 @@ const albums = [
 
 export default function Gallery() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [isLoading, setIsLoading] = useState(true);
 
   const categories = ["All", "Wedding", "Corporate", "Birthday", "Event", "Video", "Holiday"];
 
   const filteredAlbums = selectedCategory === "All" 
     ? albums 
     : albums.filter(album => album.category === selectedCategory);
+
+  useEffect(() => {
+    // Simulate page loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <PuffLoader size={60} color="hsl(var(--primary))" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -342,9 +360,9 @@ export default function Gallery() {
                         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground mt-auto"
                         asChild
                       >
-                        <Link to={`/gallery/album/${album.id}`}>
+                        <a href={`/gallery/album/${album.id}`}>
                           View Album
-                        </Link>
+                        </a>
                       </Button>
                     </CardContent>
                   </Card>
@@ -380,14 +398,14 @@ export default function Gallery() {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       asChild
                     >
-                      <Link to="/check-availability">Book Now</Link>
+                      <a href="/check-availability">Book Now</a>
                     </Button>
                     <Button
                       variant="outline"
                       className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                       asChild
                     >
-                      <Link to="/contact">Contact Us</Link>
+                      <a href="/contact">Contact Us</a>
                     </Button>
                   </div>
                 </CardContent>

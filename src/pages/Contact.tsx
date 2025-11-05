@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, Instagram, Facebook } from "lucide-react";
+import { ClipLoader } from "react-spinners";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -250,7 +251,7 @@ export default function Contact() {
                         >
                           {isSubmitting ? (
                             <>
-                              <Clock className="mr-2 h-4 w-4 animate-spin" />
+                              <ClipLoader size={16} color="currentColor" className="mr-2" />
                               Sending...
                             </>
                           ) : (
@@ -381,9 +382,9 @@ export default function Contact() {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       asChild
                     >
-                      <Link to="/check-availability">
+                      <a href="/check-availability">
                         Check Availability
-                      </Link>
+                      </a>
                     </Button>
                     <Button 
                       size="lg"
@@ -391,9 +392,9 @@ export default function Contact() {
                       className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                       asChild
                     >
-                      <Link to="/about">
+                      <a href="/about">
                         Learn More About Us
-                      </Link>
+                      </a>
                     </Button>
                   </div>
                 </CardContent>

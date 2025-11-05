@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Square, Camera, Sparkles, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { PuffLoader } from "react-spinners";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,6 +82,24 @@ const boothTypes = [
 ];
 
 export default function PhotoBooth() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate page loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <PuffLoader size={60} color="hsl(var(--primary))" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -169,9 +189,9 @@ export default function PhotoBooth() {
                           asChild
                           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300"
                         >
-                          <Link to="/check-availability">
-                            Request Custom Quote
-                          </Link>
+                          <a href="/check-availability">
+                            Check Availability
+                          </a>
                         </Button>
                         <p className="text-xs text-center text-muted-foreground mt-2 italic">
                           Pricing tailored to your event
@@ -205,17 +225,17 @@ export default function PhotoBooth() {
                       variant="outline"
                       className="flex-1 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                     >
-                      <Link to="/contact">
+                      <a href="/contact">
                         Contact Us
-                      </Link>
+                      </a>
                     </Button>
                     <Button 
                       asChild
                       className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
-                      <Link to="/check-availability">
+                      <a href="/check-availability">
                         Check Availability
-                      </Link>
+                      </a>
                     </Button>
                   </div>
                 </CardContent>
