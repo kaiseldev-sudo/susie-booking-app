@@ -9,13 +9,5 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },
-  server: {
-    allowedHosts: [
-      "vqcpzv9tdm.ap.loclx.io", // ✅ Add your tunnel hostname here
-      "localhost",
-    ],
-    host: true, // ✅ Ensures it listens on all network interfaces
-    port: 5173, // or whatever port you’re using
-  },
+  }
 }));

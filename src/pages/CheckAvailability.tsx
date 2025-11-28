@@ -1,14 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon, CheckCircle2, XCircle, Clock, MapPin, Phone, Mail } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { Calendar as CalendarIcon, CheckCircle2, XCircle, Clock, MapPin, Phone, Mail, Loader2 } from "lucide-react";
 import { ClipLoader } from "react-spinners";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -26,21 +25,74 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+
+type AvailabilityResult = {
+  available: boolean;
+  message: string;
+  details?: {
+    appointmentId?: number;
+    appointmentStatus?: string;
+    eventDate?: string;
+    preferredTime?: string | null;
+    contactEmail?: string;
+  };
+};
+
+type Schedule = {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  end_time: string | null;
+  time_display: string;
+  date_display: string;
+  date_short: string;
+  description?: string;
+  status: string;
+};
+
+const formatEventDateDisplay = (value?: string) => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return format(parseISO(value), "PPP");
+  } catch {
+    return value;
+  }
+};
+
+const formatPreferredTimeDisplay = (value?: string | null) => {
+  if (!value || value.trim().length === 0) {
+    return "Flexible";
+  }
+
+  const normalized = value.trim();
+  if (/^\d{2}:\d{2}(:\d{2})?$/.test(normalized)) {
+    const [hourStr, minuteStr] = normalized.split(":");
+    const date = new Date();
+    date.setHours(Number(hourStr), Number(minuteStr), 0, 0);
+    return format(date, "h:mm a");
+  }
+
+  return normalized;
+};
 
 const availabilityFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(10, "Please enter a valid phone number"),
-  service: z.enum(["photo-booth", "360-experience", "custom-backdrops"], {
+  service: z.enum(["photo-booth", "360-experience", "custom-backdrops", "micro-photo-booth"], {
     required_error: "Please select a service.",
   }),
-  date: z.date({
-    required_error: "Please select a date.",
+  scheduleId: z.string({
+    required_error: "Please select an available schedule.",
   }),
-  timeSlot: z.string().optional(),
 });
 
 type AvailabilityFormValues = z.infer<typeof availabilityFormSchema>;
@@ -68,49 +120,15 @@ const services = [
   },
 ];
 
-const timeSlots = [
-  "9:00 AM",
-  "10:00 AM",
-  "11:00 AM",
-  "12:00 PM",
-  "1:00 PM",
-  "2:00 PM",
-  "3:00 PM",
-  "4:00 PM",
-  "5:00 PM",
-  "6:00 PM",
-  "7:00 PM",
-  "8:00 PM",
-];
-
-// Mock availability checker - in real app, this would call an API
-const checkAvailability = (service: string, date: Date, timeSlot?: string) => {
-  // Simulate checking availability
-  const dayOfWeek = date.getDay();
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  
-  // Weekend dates are more likely to be booked
-  if (isWeekend && Math.random() > 0.3) {
-    return { available: false, message: "This date is currently booked. Please try another date." };
-  }
-  
-  // Weekday dates are more likely to be available
-  if (!isWeekend && Math.random() > 0.7) {
-    return { available: false, message: "This date is currently booked. Please try another date." };
-  }
-  
-  return { 
-    available: true, 
-    message: "Great news! This date is available. Complete your booking below." 
-  };
-};
-
 export default function CheckAvailability() {
-  const [availabilityResult, setAvailabilityResult] = useState<{
-    available: boolean;
-    message: string;
-  } | null>(null);
+  const [availabilityResult, setAvailabilityResult] = useState<AvailabilityResult | null>(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [completeError, setCompleteError] = useState<string | null>(null);
+  const [lastSubmission, setLastSubmission] = useState<{ email: string } | null>(null);
+  const [availableSchedules, setAvailableSchedules] = useState<Schedule[]>([]);
+  const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
+  const [selectedService, setSelectedService] = useState<string | undefined>();
 
   const form = useForm<AvailabilityFormValues>({
     resolver: zodResolver(availabilityFormSchema),
@@ -119,24 +137,176 @@ export default function CheckAvailability() {
       email: "",
       phone: "",
       service: undefined,
-      date: undefined,
-      timeSlot: undefined,
+      scheduleId: undefined,
     },
   });
 
+  // Watch service selection to fetch schedules
+  const watchedService = form.watch("service");
+
+  useEffect(() => {
+    if (watchedService) {
+      setSelectedService(watchedService);
+      fetchAvailableSchedules(watchedService);
+      // Reset schedule selection when service changes
+      form.setValue("scheduleId", undefined);
+    } else {
+      setAvailableSchedules([]);
+      setSelectedService(undefined);
+    }
+  }, [watchedService]);
+
+  const fetchAvailableSchedules = async (serviceType?: string) => {
+    setIsLoadingSchedules(true);
+    try {
+      const params = new URLSearchParams();
+      params.append("status", "pending");
+      if (serviceType) {
+        params.append("service_type", serviceType);
+      }
+      params.append("limit", "50");
+
+      const response = await fetch(`${API_BASE_URL}/api/available-schedules.php?${params.toString()}`);
+      const result = await response.json();
+
+      if (response.ok && result?.success) {
+        setAvailableSchedules(result.data?.schedules || []);
+      } else {
+        setAvailableSchedules([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch schedules:", error);
+      setAvailableSchedules([]);
+    } finally {
+      setIsLoadingSchedules(false);
+    }
+  };
+
+  const eventDateDisplay = availabilityResult?.details
+    ? formatEventDateDisplay(availabilityResult.details.eventDate)
+    : null;
+  const preferredTimeDisplay = formatPreferredTimeDisplay(availabilityResult?.details?.preferredTime);
+  const appointmentReference = availabilityResult?.details?.appointmentId
+    ? `APT-${String(availabilityResult.details.appointmentId).padStart(5, "0")}`
+    : null;
+  const appointmentStatus = availabilityResult?.details?.appointmentStatus ?? "pending";
+
   const onSubmit = async (data: AvailabilityFormValues) => {
     setIsChecking(true);
-    // Simulate API call delay
-    setTimeout(() => {
-      const result = checkAvailability(data.service, data.date, data.timeSlot);
-      setAvailabilityResult(result);
+    setAvailabilityResult(null);
+    setCompleteError(null);
+    setLastSubmission(null);
+
+    try {
+      // Find selected schedule to get date and time
+      const selectedSchedule = availableSchedules.find(
+        (s) => s.id.toString() === data.scheduleId
+      );
+
+      if (!selectedSchedule) {
+        throw new Error("Selected schedule not found");
+      }
+
+      const payload = {
+        fullName: data.name.trim(),
+        email: data.email.trim(),
+        phone: data.phone.trim(),
+        serviceType: data.service,
+        eventDate: selectedSchedule.date,
+        preferredTime: selectedSchedule.time,
+        scheduleId: selectedSchedule.id,
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/availability-request.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.success) {
+        const validationMessage =
+          result?.errors && typeof result.errors === "object"
+            ? Object.values(result.errors).join(" ")
+            : null;
+        throw new Error(validationMessage || result?.message || "Unable to submit availability request.");
+      }
+
+      const responseData = result?.data ?? {};
+
+      setAvailabilityResult({
+        available: true,
+        message: result?.message || "Great news! This date is available. Complete your booking below.",
+        details: {
+          appointmentId: responseData.appointment_id,
+          appointmentStatus: responseData.appointment_status,
+          eventDate: responseData.event_date,
+          preferredTime: responseData.preferred_time,
+          contactEmail: responseData.contact_email,
+        },
+      });
+      setLastSubmission({ email: payload.email });
+      form.reset();
+    } catch (error) {
+      const fallback = error instanceof Error ? error.message : "Unable to submit availability request.";
+      setAvailabilityResult({
+        available: false,
+        message: fallback,
+      });
+    } finally {
       setIsChecking(false);
-      
-      // Scroll to results
       setTimeout(() => {
         document.getElementById("availability-result")?.scrollIntoView({ behavior: "smooth" });
       }, 100);
-    }, 1000);
+    }
+  };
+
+  const handleCompleteBooking = async () => {
+    if (!availabilityResult?.details?.appointmentId || !lastSubmission?.email) {
+      return;
+    }
+
+    setIsCompleting(true);
+    setCompleteError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/booking-confirm.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          appointment_id: availabilityResult.details.appointmentId,
+          email: lastSubmission.email,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || "Unable to confirm booking.");
+      }
+
+      setAvailabilityResult((prev) => ({
+        available: true,
+        message: result?.message || "Appointment confirmed! We can't wait to celebrate with you.",
+        details: {
+          appointmentId: result.data?.appointment_id ?? prev?.details?.appointmentId,
+          appointmentStatus: result.data?.appointment_status ?? "confirmed",
+          eventDate: result.data?.event_date ?? prev?.details?.eventDate,
+          preferredTime: result.data?.preferred_time ?? prev?.details?.preferredTime,
+          contactEmail: prev?.details?.contactEmail ?? lastSubmission.email,
+        },
+      }));
+    } catch (error) {
+      const fallback = error instanceof Error ? error.message : "Unable to confirm booking.";
+      setCompleteError(fallback);
+    } finally {
+      setIsCompleting(false);
+    }
   };
 
   return (
@@ -153,7 +323,7 @@ export default function CheckAvailability() {
                   Check <span className="text-primary italic">Availability</span>
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Select your preferred service and date to check availability. 
+                  Select your preferred service and choose from available schedules. 
                   Our team will confirm your booking within 24 hours.
                 </p>
               </div>
@@ -163,7 +333,7 @@ export default function CheckAvailability() {
                 <CardHeader>
                   <CardTitle>Check Availability</CardTitle>
                   <CardDescription>
-                    Provide your contact information and select your preferred service and date.
+                    Provide your contact information and select your preferred service and schedule.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -237,13 +407,12 @@ export default function CheckAvailability() {
                               </FormControl>
                               <SelectContent>
                                 {services.map((service) => (
-                                  <SelectItem key={service.value} value={service.value}>
-                                    <div>
-                                      <div className="font-medium">{service.label}</div>
-                                      <div className="text-xs text-muted-foreground">
-                                        {service.description}
-                                      </div>
-                                    </div>
+                                  <SelectItem
+                                    key={service.value}
+                                    value={service.value}
+                                    description={service.description}
+                                  >
+                                    <span className="font-medium">{service.label}</span>
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -256,73 +425,65 @@ export default function CheckAvailability() {
                         )}
                       />
 
-                      {/* Date Selection */}
+                      {/* Available Schedule Selection */}
                       <FormField
                         control={form.control}
-                        name="date"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Event Date</FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal bg-muted hover:bg-muted/80 border-muted-foreground/20",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                  >
-                                    {field.value ? (
-                                      format(field.value, "PPP")
-                                    ) : (
-                                      <span>Pick a date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value}
-                                  onSelect={field.onChange}
-                                  disabled={(date) => date < new Date()}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <FormDescription>
-                              Select your preferred event date. We recommend booking 2-3 months in advance.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* Time Slot (Optional) */}
-                      <FormField
-                        control={form.control}
-                        name="timeSlot"
+                        name="scheduleId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Preferred Time (Optional)</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormLabel>Available Schedule *</FormLabel>
+                            <Select 
+                              onValueChange={field.onChange} 
+                              value={field.value}
+                              disabled={!selectedService || isLoadingSchedules}
+                            >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select a time (optional)" />
+                                  <SelectValue placeholder={
+                                    !selectedService 
+                                      ? "Select a service first" 
+                                      : isLoadingSchedules 
+                                      ? "Loading schedules..." 
+                                      : availableSchedules.length === 0
+                                      ? "No available schedules"
+                                      : "Select a schedule"
+                                  } />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {timeSlots.map((time) => (
-                                  <SelectItem key={time} value={time}>
-                                    {time}
-                                  </SelectItem>
-                                ))}
+                                {isLoadingSchedules ? (
+                                  <div className="flex items-center justify-center p-4">
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    <span className="text-sm text-muted-foreground">Loading schedules...</span>
+                                  </div>
+                                ) : availableSchedules.length === 0 ? (
+                                  <div className="p-4 text-center text-sm text-muted-foreground">
+                                    No available schedules found. Please try a different service or check back later.
+                                  </div>
+                                ) : (
+                                  availableSchedules.map((schedule) => (
+                                    <SelectItem
+                                      key={schedule.id}
+                                      value={schedule.id.toString()}
+                                      description={
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          {schedule.time_display || schedule.time}
+                                        </span>
+                                      }
+                                    >
+                                      <span className="font-medium">
+                                        {schedule.date_display || schedule.date_short || schedule.date}
+                                      </span>
+                                    </SelectItem>
+                                  ))
+                                )}
                               </SelectContent>
                             </Select>
                             <FormDescription>
-                              Let us know your preferred start time. We'll do our best to accommodate.
+                              {selectedService 
+                                ? "Select your preferred event date and time from available schedules."
+                                : "Select a service first to see available schedules."}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -333,7 +494,7 @@ export default function CheckAvailability() {
                         type="submit" 
                         size="lg" 
                         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                        disabled={isChecking}
+                        disabled={isChecking || !selectedService || availableSchedules.length === 0}
                       >
                         {isChecking ? (
                           <>
@@ -388,29 +549,67 @@ export default function CheckAvailability() {
                           
                           {availabilityResult.available && (
                             <div className="space-y-3">
+                              {availabilityResult.details && (
+                                <div className="rounded-lg border border-border/40 bg-background/70 p-4 shadow-inner">
+                                  <dl className="grid gap-4 sm:grid-cols-2 text-sm">
+                                    {appointmentReference && (
+                                      <div>
+                                        <dt className="text-muted-foreground">Reference #</dt>
+                                        <dd className="font-semibold">{appointmentReference}</dd>
+                                      </div>
+                                    )}
+                                    {eventDateDisplay && (
+                                      <div>
+                                        <dt className="text-muted-foreground">Event Date</dt>
+                                        <dd className="font-semibold">{eventDateDisplay}</dd>
+                                      </div>
+                                    )}
+                                    <div>
+                                      <dt className="text-muted-foreground">Preferred Time</dt>
+                                      <dd className="font-semibold">{preferredTimeDisplay}</dd>
+                                    </div>
+                                    <div>
+                                      <dt className="text-muted-foreground">Status</dt>
+                                      <dd className="font-semibold capitalize">{appointmentStatus}</dd>
+                                    </div>
+                                  </dl>
+                                </div>
+                              )}
                               <p className="text-sm text-muted-foreground">
                                 Next steps to complete your booking:
                               </p>
                               <div className="flex flex-col sm:flex-row gap-3">
                                 <Button 
                                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                                  onClick={() => {
-                                    // In a real app, this would navigate to a booking form
-                                    alert("Booking form would open here!");
-                                  }}
+                                  onClick={handleCompleteBooking}
+                                  disabled={isCompleting}
                                 >
-                                  Complete Booking
+                                  {isCompleting ? (
+                                    <>
+                                      <ClipLoader size={16} color="currentColor" className="mr-2" />
+                                      Confirming...
+                                    </>
+                                  ) : (
+                                    <>Complete Booking</>
+                                  )}
                                 </Button>
                                 <Button 
                                   variant="outline"
                                   onClick={() => {
                                     form.reset();
                                     setAvailabilityResult(null);
+                                    setCompleteError(null);
+                                    setLastSubmission(null);
                                   }}
                                 >
                                   Check Another Date
                                 </Button>
                               </div>
+                              {completeError && (
+                                <p className="text-sm text-red-600 dark:text-red-300">
+                                  {completeError}
+                                </p>
+                              )}
                               
                               <div className="pt-4 border-t border-border/50">
                                 <p className="text-sm font-semibold mb-2">Or contact us directly:</p>
@@ -443,7 +642,7 @@ export default function CheckAvailability() {
                               }}
                               className="mt-4"
                             >
-                              Try Another Date
+                              Try Again
                             </Button>
                           )}
                         </div>
@@ -486,7 +685,7 @@ export default function CheckAvailability() {
                       <h3 className="font-semibold">Flexible Dates</h3>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      We recommend booking 2-3 months in advance for best availability.
+                      Browse available schedules and select the one that works best for you.
                     </p>
                   </CardContent>
                 </Card>
@@ -500,4 +699,3 @@ export default function CheckAvailability() {
     </div>
   );
 }
-
