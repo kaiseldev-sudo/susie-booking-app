@@ -232,7 +232,7 @@ export default function Album() {
 
               <div className="mt-10 flex justify-center">
                 <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <a href="/check-availability">Book us for your event</a>
+                  <a href="/contact">Book us for your event</a>
                 </Button>
               </div>
             </div>

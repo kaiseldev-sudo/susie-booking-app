@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addDays } from "date-fns";
 import { Calendar as CalendarIcon, CheckCircle2, XCircle, Clock, MapPin, Phone, Mail, Loader2 } from "lucide-react";
 import { ClipLoader } from "react-spinners";
 import { Navbar } from "@/components/Navbar";
@@ -28,8 +28,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
-
 type AvailabilityResult = {
   available: boolean;
   message: string;
@@ -54,6 +52,44 @@ type Schedule = {
   description?: string;
   status: string;
 };
+
+// Generate mock schedules for the next 30 days
+const generateMockSchedules = (): Schedule[] => {
+  const schedules: Schedule[] = [];
+  const times = ["10:00", "14:00", "18:00"];
+  const today = new Date();
+  
+  for (let i = 3; i <= 30; i++) {
+    const date = addDays(today, i);
+    // Skip some days randomly to make it more realistic
+    if (i % 4 === 0) continue;
+    
+    times.forEach((time, timeIndex) => {
+      // Skip some time slots randomly
+      if ((i + timeIndex) % 3 === 0) return;
+      
+      const [hours, minutes] = time.split(":").map(Number);
+      const dateWithTime = new Date(date);
+      dateWithTime.setHours(hours, minutes, 0, 0);
+      
+      schedules.push({
+        id: i * 10 + timeIndex,
+        title: `Available Slot`,
+        date: format(date, "yyyy-MM-dd"),
+        time: time,
+        end_time: null,
+        time_display: format(dateWithTime, "h:mm a"),
+        date_display: format(date, "EEEE, MMMM d, yyyy"),
+        date_short: format(date, "MMM d"),
+        status: "pending",
+      });
+    });
+  }
+  
+  return schedules;
+};
+
+const mockSchedules = generateMockSchedules();
 
 const formatEventDateDisplay = (value?: string) => {
   if (!value) {
@@ -120,6 +156,9 @@ const services = [
   },
 ];
 
+// Simple counter for generating appointment IDs
+let appointmentCounter = 1000;
+
 export default function CheckAvailability() {
   const [availabilityResult, setAvailabilityResult] = useState<AvailabilityResult | null>(null);
   const [isChecking, setIsChecking] = useState(false);
@@ -141,13 +180,13 @@ export default function CheckAvailability() {
     },
   });
 
-  // Watch service selection to fetch schedules
+  // Watch service selection to load schedules
   const watchedService = form.watch("service");
 
   useEffect(() => {
     if (watchedService) {
       setSelectedService(watchedService);
-      fetchAvailableSchedules(watchedService);
+      loadAvailableSchedules();
       // Reset schedule selection when service changes
       form.setValue("scheduleId", undefined);
     } else {
@@ -156,30 +195,13 @@ export default function CheckAvailability() {
     }
   }, [watchedService]);
 
-  const fetchAvailableSchedules = async (serviceType?: string) => {
+  const loadAvailableSchedules = () => {
     setIsLoadingSchedules(true);
-    try {
-      const params = new URLSearchParams();
-      params.append("status", "pending");
-      if (serviceType) {
-        params.append("service_type", serviceType);
-      }
-      params.append("limit", "50");
-
-      const response = await fetch(`${API_BASE_URL}/api/available-schedules.php?${params.toString()}`);
-      const result = await response.json();
-
-      if (response.ok && result?.success) {
-        setAvailableSchedules(result.data?.schedules || []);
-      } else {
-        setAvailableSchedules([]);
-      }
-    } catch (error) {
-      console.error("Failed to fetch schedules:", error);
-      setAvailableSchedules([]);
-    } finally {
+    // Simulate loading delay
+    setTimeout(() => {
+      setAvailableSchedules(mockSchedules);
       setIsLoadingSchedules(false);
-    }
+    }, 500);
   };
 
   const eventDateDisplay = availabilityResult?.details
@@ -197,6 +219,9 @@ export default function CheckAvailability() {
     setCompleteError(null);
     setLastSubmission(null);
 
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     try {
       // Find selected schedule to get date and time
       const selectedSchedule = availableSchedules.find(
@@ -207,48 +232,21 @@ export default function CheckAvailability() {
         throw new Error("Selected schedule not found");
       }
 
-      const payload = {
-        fullName: data.name.trim(),
-        email: data.email.trim(),
-        phone: data.phone.trim(),
-        serviceType: data.service,
-        eventDate: selectedSchedule.date,
-        preferredTime: selectedSchedule.time,
-        scheduleId: selectedSchedule.id,
-      };
-
-      const response = await fetch(`${API_BASE_URL}/api/availability-request.php`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result?.success) {
-        const validationMessage =
-          result?.errors && typeof result.errors === "object"
-            ? Object.values(result.errors).join(" ")
-            : null;
-        throw new Error(validationMessage || result?.message || "Unable to submit availability request.");
-      }
-
-      const responseData = result?.data ?? {};
+      // Generate a new appointment ID
+      const newAppointmentId = ++appointmentCounter;
 
       setAvailabilityResult({
         available: true,
-        message: result?.message || "Great news! This date is available. Complete your booking below.",
+        message: "Great news! This date is available. Complete your booking below.",
         details: {
-          appointmentId: responseData.appointment_id,
-          appointmentStatus: responseData.appointment_status,
-          eventDate: responseData.event_date,
-          preferredTime: responseData.preferred_time,
-          contactEmail: responseData.contact_email,
+          appointmentId: newAppointmentId,
+          appointmentStatus: "pending",
+          eventDate: selectedSchedule.date,
+          preferredTime: selectedSchedule.time,
+          contactEmail: data.email,
         },
       });
-      setLastSubmission({ email: payload.email });
+      setLastSubmission({ email: data.email });
       form.reset();
     } catch (error) {
       const fallback = error instanceof Error ? error.message : "Unable to submit availability request.";
@@ -272,32 +270,18 @@ export default function CheckAvailability() {
     setIsCompleting(true);
     setCompleteError(null);
 
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     try {
-      const response = await fetch(`${API_BASE_URL}/api/booking-confirm.php`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          appointment_id: availabilityResult.details.appointmentId,
-          email: lastSubmission.email,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result?.success) {
-        throw new Error(result?.message || "Unable to confirm booking.");
-      }
-
       setAvailabilityResult((prev) => ({
         available: true,
-        message: result?.message || "Appointment confirmed! We can't wait to celebrate with you.",
+        message: "Appointment confirmed! We can't wait to celebrate with you. You will receive a confirmation email shortly.",
         details: {
-          appointmentId: result.data?.appointment_id ?? prev?.details?.appointmentId,
-          appointmentStatus: result.data?.appointment_status ?? "confirmed",
-          eventDate: result.data?.event_date ?? prev?.details?.eventDate,
-          preferredTime: result.data?.preferred_time ?? prev?.details?.preferredTime,
+          appointmentId: prev?.details?.appointmentId,
+          appointmentStatus: "confirmed",
+          eventDate: prev?.details?.eventDate,
+          preferredTime: prev?.details?.preferredTime,
           contactEmail: prev?.details?.contactEmail ?? lastSubmission.email,
         },
       }));
@@ -331,7 +315,7 @@ export default function CheckAvailability() {
               {/* Availability Form */}
               <Card className="shadow-luxury border-0">
                 <CardHeader>
-                  <CardTitle>Check Availability</CardTitle>
+                  <CardTitle>Inquire Now</CardTitle>
                   <CardDescription>
                     Provide your contact information and select your preferred service and schedule.
                   </CardDescription>
@@ -504,7 +488,7 @@ export default function CheckAvailability() {
                         ) : (
                           <>
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            Check Availability
+                            Inquire Now
                           </>
                         )}
                       </Button>

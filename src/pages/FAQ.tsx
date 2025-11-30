@@ -285,8 +285,8 @@ export default function FAQ() {
                       Check availability and book your date online in just a few clicks.
                     </p>
                     <Button variant="outline" className="w-full" asChild>
-                      <a href="/check-availability">
-                        Check Availability
+                      <a href="/contact">
+                        Inquire Now
                       </a>
                     </Button>
                   </CardContent>

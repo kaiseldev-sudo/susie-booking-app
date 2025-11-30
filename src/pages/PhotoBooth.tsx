@@ -15,6 +15,7 @@ const boothTypes = [
   {
     icon: Square,
     title: "Mirror Booth",
+    slug: "mirror-booth",
     description: "Sleek, modern, and interactive full-length mirror experience.",
     image: photoBoothImg,
     badge: "Most Popular",
@@ -32,6 +33,7 @@ const boothTypes = [
   {
     icon: Camera,
     title: "Micro Photo Booth",
+    slug: "micro-photo-booth",
     description: "Compact, stylish, and ideal for smaller spaces.",
     image: photoBoothImg,
     inclusions: [
@@ -48,6 +50,7 @@ const boothTypes = [
   {
     icon: Sparkles,
     title: "360 Video Booth",
+    slug: "360-video-booth",
     description: "Capture stunning slow-motion videos with a full 360 spin and customizable music of your choice.",
     image: booth360Img,
     badge: "Premium",
@@ -66,6 +69,7 @@ const boothTypes = [
   {
     icon: Star,
     title: "Open-Air Booth",
+    slug: "open-air-booth",
     description: "Perfect for group shots with customizable backdrops.",
     image: backdropsImg,
     inclusions: [
@@ -134,7 +138,7 @@ export default function PhotoBooth() {
                     key={booth.title}
                     className="border-0 shadow-luxury hover:shadow-soft transition-smooth overflow-hidden group flex flex-col"
                   >
-                    <div className="relative h-48 overflow-hidden">
+                    <Link to={`/photo-booth/${booth.slug}`} className="block relative h-48 overflow-hidden">
                       <img
                         src={booth.image}
                         alt={booth.title}
@@ -160,10 +164,17 @@ export default function PhotoBooth() {
                       
                       {/* Elegant overlay on hover */}
                       <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-all duration-500" />
-                    </div>
+                    </Link>
                     
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-xl mb-2">{booth.title}</CardTitle>
+                      <CardTitle className="text-xl mb-2">
+                        <Link 
+                          to={`/photo-booth/${booth.slug}`}
+                          className="hover:text-primary transition-colors duration-300"
+                        >
+                          {booth.title}
+                        </Link>
+                      </CardTitle>
                       <CardDescription className="text-sm leading-relaxed">
                         {booth.description}
                       </CardDescription>
@@ -189,8 +200,8 @@ export default function PhotoBooth() {
                           asChild
                           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300"
                         >
-                          <a href="/check-availability">
-                            Check Availability
+                          <a href="/contact">
+                            Inquire Now
                           </a>
                         </Button>
                         <p className="text-xs text-center text-muted-foreground mt-2 italic">
@@ -233,8 +244,8 @@ export default function PhotoBooth() {
                       asChild
                       className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
-                      <a href="/check-availability">
-                        Check Availability
+                      <a href="/contact">
+                        Inquire Now
                       </a>
                     </Button>
                   </div>

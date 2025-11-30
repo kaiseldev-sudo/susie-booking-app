@@ -43,8 +43,8 @@ export const Hero = () => {
               className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-soft text-lg px-8"
               asChild
             >
-              <a href="/check-availability">
-                Check Availability
+              <a href="/contact">
+                Inquire Now
               </a>
             </Button>
             <Button 

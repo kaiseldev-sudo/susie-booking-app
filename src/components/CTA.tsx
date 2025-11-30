@@ -24,9 +24,9 @@ export const CTA = () => {
               className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-soft text-lg px-8"
               asChild
             >
-              <a href="/check-availability">
+              <a href="/contact">
                 <Calendar className="mr-2 w-5 h-5" />
-                Check Availability
+                Inquire Now
               </a>
             </Button>
             <Button 

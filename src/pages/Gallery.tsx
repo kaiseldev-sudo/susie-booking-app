@@ -398,7 +398,7 @@ export default function Gallery() {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       asChild
                     >
-                      <a href="/check-availability">Book Now</a>
+                      <a href="/contact">Inquire Now</a>
                     </Button>
                     <Button
                       variant="outline"

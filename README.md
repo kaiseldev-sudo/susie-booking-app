@@ -66,11 +66,7 @@ Key routes are configured in `src/App.tsx` using `react-router-dom`.
 
 ## Environment Variables
 
-This project runs without required environment variables by default. If you add APIs (email, analytics, etc.), place variables in a `.env` file at the project root per Vite's `import.meta.env` conventions, for example:
-
-```
-VITE_API_BASE_URL="https://api.example.com"
-```
+This project runs without required environment variables. All booking availability features use mock data for demonstration purposes. If you add APIs (email, analytics, etc.), place variables in a `.env` file at the project root per Vite's `import.meta.env` conventions.
 
 Restart the dev server after changing env values.
 

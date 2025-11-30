@@ -261,8 +261,8 @@ export default function AboutUs() {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       asChild
                     >
-                      <a href="/check-availability">
-                        Check Availability
+                      <a href="/contact">
+                        Inquire Now
                       </a>
                     </Button>
                     <Button 

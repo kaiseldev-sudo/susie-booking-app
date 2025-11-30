@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, Instagram, Facebook } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, Instagram, Facebook, AlertCircle } from "lucide-react";
 import { ClipLoader } from "react-spinners";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -35,23 +35,23 @@ const contactInfo = [
   {
     icon: Phone,
     title: "Phone",
-    content: "(123) 456-7890",
-    link: "tel:+1234567890",
+    content: "+1 228-209-0801",
+    link: "tel:+1 228-209-0801",
     description: "Call us anytime",
   },
   {
     icon: Mail,
     title: "Email",
-    content: "hello@susiecalvert.com",
-    link: "mailto:hello@susiecalvert.com",
+    content: "magicalmemoriespbs@gmail.com",
+    link: "mailto:magicalmemoriespbs@gmail.com",
     description: "Send us an email",
   },
   {
     icon: MapPin,
     title: "Location",
-    content: "Southern California",
+    content: "Colorado Springs, CO",
     link: "#",
-    description: "Serving all of Southern California",
+    description: "Local & beyond",
   },
   {
     icon: Clock,
@@ -62,9 +62,12 @@ const contactInfo = [
   },
 ];
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -79,18 +82,40 @@ export default function Contact() {
 
   const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true);
-    // Simulate API call delay
-    setTimeout(() => {
-      console.log("Form submitted:", data);
+    setSubmitError(null);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send message');
+      }
+
       setSubmitSuccess(true);
-      setIsSubmitting(false);
       form.reset();
       
       // Hide success message after 5 seconds
       setTimeout(() => {
         setSubmitSuccess(false);
       }, 5000);
-    }, 1000);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setSubmitError(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to send message. Please try again later.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -159,6 +184,18 @@ export default function Contact() {
                           <p className="font-semibold text-green-900 dark:text-green-100">Message Sent!</p>
                           <p className="text-sm text-green-800 dark:text-green-200">
                             Thank you for contacting us. We'll respond to your message within 24 hours.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {submitError && (
+                      <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-red-900 dark:text-red-100">Failed to Send</p>
+                          <p className="text-sm text-red-800 dark:text-red-200">
+                            {submitError}
                           </p>
                         </div>
                       </div>
@@ -308,21 +345,23 @@ export default function Contact() {
                       </p>
                       <div className="flex gap-4">
                         <a 
-                          href="#" 
+                          href="https://www.facebook.com/MAGICALMEMORIESPBS" 
                           className="w-12 h-12 bg-muted hover:bg-primary rounded-full flex items-center justify-center transition-smooth hover:text-primary-foreground"
                           aria-label="Instagram"
                         >
                           <Instagram className="w-6 h-6" />
                         </a>
                         <a 
-                          href="#" 
+                          href="https://www.facebook.com/MAGICALMEMORIESPBS" 
+                          target="_blank"
                           className="w-12 h-12 bg-muted hover:bg-primary rounded-full flex items-center justify-center transition-smooth hover:text-primary-foreground"
                           aria-label="Facebook"
                         >
                           <Facebook className="w-6 h-6" />
                         </a>
                         <a 
-                          href="mailto:hello@susiecalvert.com" 
+                          href="mailto:magicalmemoriespbs@gmail.com"
+                          target="_blank"
                           className="w-12 h-12 bg-muted hover:bg-primary rounded-full flex items-center justify-center transition-smooth hover:text-primary-foreground"
                           aria-label="Email"
                         >
@@ -382,8 +421,8 @@ export default function Contact() {
                       className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       asChild
                     >
-                      <a href="/check-availability">
-                        Check Availability
+                      <a href="/contact">
+                        Inquire Now
                       </a>
                     </Button>
                     <Button 
