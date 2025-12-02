@@ -7,6 +7,18 @@ const API_BASE = import.meta.env.PROD
   : '';
 
 interface ContentData {
+  metadata?: {
+    siteTitle: string;
+    siteDescription: string;
+    author: string;
+    keywords: string;
+    ogTitle: string;
+    ogDescription: string;
+    ogImage: string;
+    twitterCard: string;
+    favicon: string;
+    themeColor: string;
+  };
   branding?: {
     siteName: string;
     companyName: string;
