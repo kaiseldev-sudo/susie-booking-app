@@ -1,8 +1,26 @@
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, Mail, Phone } from "lucide-react";
+import { useContent } from "@/hooks/useContent";
+
+const defaultCta = {
+  title: "Ready to Elevate Your Event?",
+  description: "Limited spots available for popular dates. Book your photo booth experience today and create memories that last a lifetime.",
+  primaryButtonText: "Inquire Now",
+  secondaryButtonText: "Get a Quote",
+};
+
+const defaultContact = {
+  phone: "(123) 456-7890",
+  email: "hello@susiecalvert.com",
+};
 
 export const CTA = () => {
+  const { content: cta } = useContent<typeof defaultCta>('cta');
+  const { content: contact } = useContent<typeof defaultContact>('contact');
+  
+  const ctaData = { ...defaultCta, ...cta };
+  const contactData = { ...defaultContact, ...contact };
+
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background with gradient */}
@@ -14,8 +32,7 @@ export const CTA = () => {
             Ready to <span className="text-primary italic">Elevate</span> Your Event?
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Limited spots available for popular dates. Book your photo booth experience today 
-            and create memories that last a lifetime.
+            {ctaData.description}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -26,7 +43,7 @@ export const CTA = () => {
             >
               <a href="/contact">
                 <Calendar className="mr-2 w-5 h-5" />
-                Inquire Now
+                {ctaData.primaryButtonText}
               </a>
             </Button>
             <Button 
@@ -35,25 +52,25 @@ export const CTA = () => {
               className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-lg px-8"
             >
               <Mail className="mr-2 w-5 h-5" />
-              Get a Quote
+              {ctaData.secondaryButtonText}
             </Button>
           </div>
 
           {/* Contact Info */}
           <div className="flex flex-col sm:flex-row gap-8 justify-center items-center text-muted-foreground">
             <a 
-              href="tel:+1234567890" 
+              href={`tel:${contactData.phone?.replace(/[^0-9+]/g, '')}`}
               className="flex items-center gap-2 hover:text-primary transition-smooth"
             >
               <Phone className="w-5 h-5" />
-              <span>(123) 456-7890</span>
+              <span>{contactData.phone}</span>
             </a>
             <a 
-              href="mailto:hello@susiecalvert.com" 
+              href={`mailto:${contactData.email}`}
               className="flex items-center gap-2 hover:text-primary transition-smooth"
             >
               <Mail className="w-5 h-5" />
-              <span>hello@susiecalvert.com</span>
+              <span>{contactData.email}</span>
             </a>
           </div>
         </div>

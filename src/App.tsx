@@ -10,8 +10,6 @@ import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import PhotoBooth from "./pages/PhotoBooth";
 import BoothDetail from "./pages/BoothDetail";
-import Gallery from "./pages/Gallery";
-import Album from "./pages/Album";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,8 +28,6 @@ const App = () => (
           <Route path="/faq" element={<FAQ />} />
           <Route path="/photo-booth" element={<PhotoBooth />} />
           <Route path="/photo-booth/:slug" element={<BoothDetail />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/gallery/album/:id" element={<Album />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

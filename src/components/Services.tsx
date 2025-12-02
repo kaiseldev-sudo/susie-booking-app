@@ -1,34 +1,49 @@
-import { Camera, Circle, Image, Palette } from "lucide-react";
+import { Camera, Circle, Image } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
+import { useContent } from "@/hooks/useContent";
 import photoBoothImg from "@/assets/photo-booth.jpg";
 import booth360Img from "@/assets/360-booth.jpg";
 import backdropsImg from "@/assets/backdrops.jpg";
 
-const services = [
+const defaultServices = [
   {
-    title: "Photo Booth",
+    id: "photo-booth",
+    name: "Photo Booth",
     description: "Classic photo booth fun with modern technology. High-quality prints, digital sharing, and unlimited sessions for your guests.",
-    icon: Camera,
-    image: photoBoothImg,
+    featured: true,
   },
   {
-    title: "360° Experience",
+    id: "360-booth",
+    name: "360° Experience",
     description: "The ultimate party centerpiece. Capture stunning slow-motion videos from every angle with our state-of-the-art 360° booth.",
-    icon: Circle,
-    image: booth360Img,
+    featured: true,
   },
   {
-    title: "Custom Backdrops",
+    id: "backdrops",
+    name: "Custom Backdrops",
     description: "Transform your event with our curated collection of elegant backdrops. From florals to modern designs, we have the perfect setting.",
-    icon: Image,
-    image: backdropsImg,
+    featured: true,
   },
 ];
+
+// Map service IDs to images and icons
+const serviceAssets: Record<string, { image: string; icon: React.ComponentType<{ className?: string }> }> = {
+  "photo-booth": { image: photoBoothImg, icon: Camera },
+  "360-booth": { image: booth360Img, icon: Circle },
+  "backdrops": { image: backdropsImg, icon: Image },
+};
+
+const defaultAsset = { image: photoBoothImg, icon: Camera };
 
 export const Services = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const { content: services } = useContent<typeof defaultServices>('services');
+
+  // Filter only featured services
+  const featuredServices = (services && services.length > 0 ? services : defaultServices)
+    .filter(service => service.featured !== false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -68,43 +83,48 @@ export const Services = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
-            <Card 
-              key={service.title}
-              className={`group overflow-hidden border-0 shadow-luxury hover:shadow-soft transition-all duration-700 ease-out bg-card cursor-pointer hover:-translate-y-2 ${
-                isVisible 
-                  ? "opacity-100 translate-y-0 scale-100" 
-                  : "opacity-0 translate-y-16 scale-95"
-              }`}
-              style={{ transitionDelay: `${index * 150}ms` }}
-            >
-              <div className="relative h-64 overflow-hidden">
-                <img
-                  src={service.image}
-                  alt={service.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
-                <div 
-                  className={`absolute bottom-4 left-4 transition-all duration-500 ${
-                    isVisible ? "opacity-100 scale-100" : "opacity-0 scale-0"
-                  }`}
-                  style={{ transitionDelay: `${index * 150 + 300}ms` }}
-                >
-                  <div className="w-12 h-12 bg-primary/90 rounded-full flex items-center justify-center text-primary-foreground group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
-                    <service.icon className="w-6 h-6" />
+          {featuredServices.map((service, index) => {
+            const assets = serviceAssets[service.id] || defaultAsset;
+            const IconComponent = assets.icon;
+            
+            return (
+              <Card 
+                key={service.id || service.name}
+                className={`group overflow-hidden border-0 shadow-luxury hover:shadow-soft transition-all duration-700 ease-out bg-card cursor-pointer hover:-translate-y-2 ${
+                  isVisible 
+                    ? "opacity-100 translate-y-0 scale-100" 
+                    : "opacity-0 translate-y-16 scale-95"
+                }`}
+                style={{ transitionDelay: `${index * 150}ms` }}
+              >
+                <div className="relative h-64 overflow-hidden">
+                  <img
+                    src={assets.image}
+                    alt={service.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
+                  <div 
+                    className={`absolute bottom-4 left-4 transition-all duration-500 ${
+                      isVisible ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                    }`}
+                    style={{ transitionDelay: `${index * 150 + 300}ms` }}
+                  >
+                    <div className="w-12 h-12 bg-primary/90 rounded-full flex items-center justify-center text-primary-foreground group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+                      <IconComponent className="w-6 h-6" />
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <CardContent className="p-6">
-                <h3 className="font-display text-2xl font-bold mb-3 group-hover:text-primary transition-colors duration-300">{service.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {service.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+                
+                <CardContent className="p-6">
+                  <h3 className="font-display text-2xl font-bold mb-3 group-hover:text-primary transition-colors duration-300">{service.name}</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {service.description}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </section>

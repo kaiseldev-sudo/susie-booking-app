@@ -1,20 +1,24 @@
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useContent } from "@/hooks/useContent";
 
-const testimonials = [
+const defaultTestimonials = [
   {
+    id: "1",
     name: "Sarah Johnson",
     event: "Wedding Reception",
     rating: 5,
     text: "Absolutely incredible! The photo booth was the highlight of our wedding. Our guests couldn't stop raving about it, and the photos turned out stunning. Worth every penny!",
   },
   {
+    id: "2",
     name: "Michael Chen",
     event: "Corporate Event",
     rating: 5,
     text: "Professional, punctual, and perfect. The 360 booth was a massive hit at our company gala. The team made setup and breakdown seamless. Highly recommend!",
   },
   {
+    id: "3",
     name: "Emily Rodriguez",
     event: "Birthday Celebration",
     rating: 5,
@@ -23,6 +27,10 @@ const testimonials = [
 ];
 
 export const Testimonials = () => {
+  const { content: testimonials } = useContent<typeof defaultTestimonials>('testimonials');
+  
+  const testimonialsData = testimonials && testimonials.length > 0 ? testimonials : defaultTestimonials;
+
   return (
     <section className="py-24 bg-muted/30">
       <div className="container mx-auto px-4 lg:px-8">
@@ -37,9 +45,9 @@ export const Testimonials = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {testimonials.map((testimonial, index) => (
+          {testimonialsData.map((testimonial, index) => (
             <Card
-              key={testimonial.name}
+              key={testimonial.id || testimonial.name}
               className="border-0 shadow-luxury hover:shadow-soft transition-smooth"
               style={{ animationDelay: `${index * 100}ms` }}
             >

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D4AF37"/>
+      <stop offset="50%" style="stop-color:#F4E4BC"/>
+      <stop offset="100%" style="stop-color:#C9A227"/>
+    </linearGradient>
+    <linearGradient id="rose" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8B4B8"/>
+      <stop offset="100%" style="stop-color:#D4919A"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="100" cy="100" r="200" fill="url(#rose)" opacity="0.05"/>
+  <circle cx="1100" cy="530" r="250" fill="url(#gold)" opacity="0.05"/>
+  
+  <!-- Border -->
+  <rect x="30" y="30" width="1140" height="570" rx="8" fill="none" stroke="url(#gold)" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Camera icon -->
+  <g transform="translate(500, 180)">
+    <rect x="0" y="30" width="200" height="140" rx="15" fill="#2C2C2C" stroke="url(#gold)" stroke-width="3"/>
+    <circle cx="100" cy="100" r="45" fill="none" stroke="url(#gold)" stroke-width="4"/>
+    <circle cx="100" cy="100" r="30" fill="#1A1A1A"/>
+    <circle cx="100" cy="100" r="20" fill="#333"/>
+    <circle cx="92" cy="92" r="8" fill="rgba(255,255,255,0.3)"/>
+    <rect x="140" y="10" width="50" height="35" rx="5" fill="#2C2C2C" stroke="url(#gold)" stroke-width="2"/>
+  </g>
+  
+  <!-- Sparkles -->
+  <path d="M200 150 L210 130 L220 150 L240 160 L220 170 L210 190 L200 170 L180 160 Z" fill="url(#gold)" opacity="0.6"/>
+  <path d="M1000 450 L1010 430 L1020 450 L1040 460 L1020 470 L1010 490 L1000 470 L980 460 Z" fill="url(#rose)" opacity="0.5"/>
+  <path d="M150 480 L155 470 L160 480 L170 485 L160 490 L155 500 L150 490 L140 485 Z" fill="url(#gold)" opacity="0.4"/>
+  
+  <!-- Text -->
+  <text x="600" y="420" text-anchor="middle" font-family="Georgia, serif" font-size="56" fill="url(#gold)" font-weight="500">
+    Susie Calvert Photography
+  </text>
+  <text x="600" y="480" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#E8B4B8" letter-spacing="4">
+    LUXURY PHOTO BOOTH EXPERIENCES
+  </text>
+  
+  <!-- Decorative line -->
+  <line x1="350" y1="520" x2="850" y2="520" stroke="url(#gold)" stroke-width="1" opacity="0.5"/>
+  
+  <text x="600" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#888" letter-spacing="2">
+    MAGICAL MEMORIES PHOTO BOOTH SERVICES
+  </text>
+</svg>
+

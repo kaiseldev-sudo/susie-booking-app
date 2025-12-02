@@ -1,9 +1,26 @@
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
+import { useContent } from "@/hooks/useContent";
+
 const heroVideo = "https://www.pexels.com/download/video/5271945/";
 
+// Default values as fallback
+const defaults = {
+  tagline: "Magic starts here",
+  titleLine1: "Susie's",
+  titleLine2: "Photography",
+  titleLine3: "Magical Memories",
+  description: "Transform your moments into unforgettable memories with our premium photo booths—bringing fun, laughter, and sparkle to every celebration!",
+  ctaText: "Inquire Now",
+  rating: "5.0",
+  reviewCount: "373+"
+};
+
 export const Hero = () => {
+  const { content: hero } = useContent<typeof defaults>('hero');
+  
+  const data = { ...defaults, ...hero };
+
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Video with Overlay */}
@@ -24,17 +41,18 @@ export const Hero = () => {
       <div className="container mx-auto px-4 lg:px-8 relative z-10 pt-20">
         <div className="max-w-3xl">
           <p className="text-secondary font-medium tracking-wide uppercase text-sm animate-fade-in">
-            Magic starts here
+            {data.tagline}
           </p>
           
           <h1 className="font-display text-5xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 animate-fade-in leading-tight break-words">
-            <span className="block sm:inline">Susie's</span> <span className="italic text-primary block sm:inline">Photography</span>
+            <span className="block sm:inline">{data.titleLine1}</span>{" "}
+            <span className="italic text-primary block sm:inline">{data.titleLine2}</span>
             <br className="hidden sm:block" />
-            <span className="block">Magical Memories</span>
+            <span className="block">{data.titleLine3}</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl animate-fade-in">
-          Transform your moments into unforgettable memories with our premium photo booths—bringing fun, laughter, and sparkle to every celebration!
+            {data.description}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-in">
@@ -44,15 +62,8 @@ export const Hero = () => {
               asChild
             >
               <a href="/contact">
-                Inquire Now
+                {data.ctaText}
               </a>
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-lg px-8"
-            >
-              <a href="/gallery">View Gallery</a>
             </Button>
           </div>
 
@@ -64,10 +75,10 @@ export const Hero = () => {
                   <Star key={i} className="w-5 h-5 fill-accent text-accent" />
                 ))}
               </div>
-              <span className="font-semibold">5.0</span>
+              <span className="font-semibold">{data.rating}</span>
             </div>
             <div className="text-muted-foreground">
-              <span className="font-semibold text-foreground">373+</span> Five-Star Reviews
+              <span className="font-semibold text-foreground">{data.reviewCount}</span> Five-Star Reviews
             </div>
           </div>
         </div>

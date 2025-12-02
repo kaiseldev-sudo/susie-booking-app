@@ -17,7 +17,6 @@ export const Navbar = () => {
 
   const navLinks = [
     { label: "Photo Booth", href: "/photo-booth" },
-    { label: "Gallery", href: "/gallery" },
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
   ];
