@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useContent } from "@/hooks/useContent";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -31,36 +32,36 @@ const contactFormSchema = z.object({
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
-const contactInfo = [
+const defaultContactInfo = [
   {
     icon: Phone,
     title: "Phone",
-    content: "+1 228-209-0801",
-    link: "tel:+1 228-209-0801",
+    key: "phone",
+    fallback: "+1 228-209-0801",
     description: "Call us anytime",
   },
   {
     icon: Mail,
     title: "Email",
-    content: "magicalmemoriespbs@gmail.com",
-    link: "mailto:magicalmemoriespbs@gmail.com",
+    key: "email",
+    fallback: "magicalmemoriespbs@gmail.com",
     description: "Send us an email",
   },
   {
     icon: MapPin,
     title: "Location",
-    content: "Colorado Springs, CO",
-    link: "#",
+    key: "address",
+    fallback: "Colorado Springs, CO",
     description: "Local & beyond",
   },
   {
     icon: Clock,
     title: "Response Time",
-    content: "Within 24 Hours",
-    link: "#",
+    key: "responseTime",
+    fallback: "Within 24 Hours",
     description: "We'll get back to you",
   },
-];
+] as const;
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -68,6 +69,43 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const { content: contact } = useContent<{
+    email?: string;
+    phone?: string;
+    address?: string;
+    businessHours?: string;
+    responseTime?: string;
+  }>("contact");
+
+  const { content: social } = useContent<{
+    instagram?: string;
+    facebook?: string;
+    tiktok?: string;
+    youtube?: string;
+    pinterest?: string;
+  }>("social");
+
+  const { content: contactPage } = useContent<{
+    hero?: {
+      sectionLabel?: string;
+      titleLine1?: string;
+      titleLine2?: string;
+      description?: string;
+    };
+    info?: {
+      bookTitle?: string;
+      bookDescription?: string;
+      questionsTitle?: string;
+      questionsDescription?: string;
+      quoteTitle?: string;
+      quoteDescription?: string;
+    };
+    cta?: {
+      title?: string;
+      subtitle?: string;
+    };
+  }>("contactPage");
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -118,6 +156,29 @@ export default function Contact() {
     }
   };
 
+  const hero = contactPage?.hero;
+  const info = contactPage?.info;
+  const cta = contactPage?.cta;
+
+  const contactInfo = defaultContactInfo.map((item) => {
+    const value = (contact as any)?.[item.key] || item.fallback;
+    let link: string | undefined;
+    if (item.key === "phone") link = `tel:${value}`;
+    if (item.key === "email") link = `mailto:${value}`;
+
+    return {
+      icon: item.icon,
+      title: item.title,
+      content: value,
+      link,
+      description: item.description,
+    };
+  });
+
+  const instagramUrl = social?.instagram || "https://www.instagram.com";
+  const facebookUrl = social?.facebook || "https://www.facebook.com";
+  const emailUrl = `mailto:${contact?.email || "magicalmemoriespbs@gmail.com"}`;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -128,14 +189,17 @@ export default function Contact() {
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <p className="text-secondary font-medium mb-4 tracking-wide uppercase text-sm">
-                Contact Us
+                {hero?.sectionLabel || "Contact Us"}
               </p>
               <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                Get In <span className="text-primary italic">Touch</span>
+                {hero?.titleLine1 || "Get In"}{" "}
+                <span className="text-primary italic">
+                  {hero?.titleLine2 || "Touch"}
+                </span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Have a question or ready to book your event? We'd love to hear from you. 
-                Send us a message and we'll respond as soon as possible.
+                {hero?.description ||
+                  "Have a question or ready to book your event? We'd love to hear from you. Send us a message and we'll respond as soon as possible."}
               </p>
             </div>
           </div>
@@ -146,7 +210,7 @@ export default function Contact() {
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <div className="grid md:grid-cols-3 gap-8 mb-12">
-                {contactInfo.map((info, index) => (
+                {contactInfo.map((info) => (
                   <Card key={info.title} className="border-0 shadow-sm text-center hover:shadow-md transition-smooth">
                     <CardContent className="pt-6">
                       <info.icon className="h-8 w-8 text-primary mx-auto mb-4" />
@@ -311,24 +375,30 @@ export default function Contact() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <h3 className="font-semibold mb-2">Book Your Event</h3>
+                        <h3 className="font-semibold mb-2">
+                          {info?.bookTitle || "Book Your Event"}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Ready to make your event unforgettable? Contact us to discuss your vision 
-                          and we'll create a customized package perfect for your celebration.
+                          {info?.bookDescription ||
+                            "Ready to make your event unforgettable? Contact us to discuss your vision and we'll create a customized package perfect for your celebration."}
                         </p>
                       </div>
                       <div>
-                        <h3 className="font-semibold mb-2">Ask Questions</h3>
+                        <h3 className="font-semibold mb-2">
+                          {info?.questionsTitle || "Ask Questions"}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Have questions about our services, pricing, or availability? We're here 
-                          to help and happy to answer any questions you may have.
+                          {info?.questionsDescription ||
+                            "Have questions about our services, pricing, or availability? We're here to help and happy to answer any questions you may have."}
                         </p>
                       </div>
                       <div>
-                        <h3 className="font-semibold mb-2">Request a Quote</h3>
+                        <h3 className="font-semibold mb-2">
+                          {info?.quoteTitle || "Request a Quote"}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Looking for a custom package? Tell us about your event and we'll provide 
-                          a detailed quote tailored to your needs.
+                          {info?.quoteDescription ||
+                            "Looking for a custom package? Tell us about your event and we'll provide a detailed quote tailored to your needs."}
                         </p>
                       </div>
                     </CardContent>
@@ -345,14 +415,14 @@ export default function Contact() {
                       </p>
                       <div className="flex gap-4">
                         <a 
-                          href="https://www.facebook.com/MAGICALMEMORIESPBS" 
+                          href={instagramUrl}
                           className="w-12 h-12 bg-muted hover:bg-primary rounded-full flex items-center justify-center transition-smooth hover:text-primary-foreground"
                           aria-label="Instagram"
                         >
                           <Instagram className="w-6 h-6" />
                         </a>
                         <a 
-                          href="https://www.facebook.com/MAGICALMEMORIESPBS" 
+                          href={facebookUrl}
                           target="_blank"
                           className="w-12 h-12 bg-muted hover:bg-primary rounded-full flex items-center justify-center transition-smooth hover:text-primary-foreground"
                           aria-label="Facebook"
@@ -360,7 +430,7 @@ export default function Contact() {
                           <Facebook className="w-6 h-6" />
                         </a>
                         <a 
-                          href="mailto:magicalmemoriespbs@gmail.com"
+                          href={emailUrl}
                           target="_blank"
                           className="w-12 h-12 bg-muted hover:bg-primary rounded-full flex items-center justify-center transition-smooth hover:text-primary-foreground"
                           aria-label="Email"
@@ -377,18 +447,10 @@ export default function Contact() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Monday - Friday</span>
-                          <span className="font-medium">9:00 AM - 6:00 PM</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Saturday</span>
-                          <span className="font-medium">10:00 AM - 4:00 PM</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Sunday</span>
-                          <span className="font-medium">Closed</span>
-                        </div>
+                        <p className="text-muted-foreground">
+                          {contact?.businessHours ||
+                            "Mon-Fri: 9:00 AM - 6:00 PM, Sat-Sun: By Appointment"}
+                        </p>
                       </div>
                       <p className="text-xs text-muted-foreground mt-4">
                         Events can be scheduled outside of these hours. Contact us to discuss availability.
@@ -408,10 +470,10 @@ export default function Contact() {
               <Card className="border-0 shadow-luxury bg-gradient-to-br from-primary/10 to-primary/5">
                 <CardHeader>
                   <CardTitle className="text-2xl md:text-3xl mb-2">
-                    Ready to Book Your Event?
+                    {cta?.title || "Ready to Book Your Event?"}
                   </CardTitle>
                   <CardDescription className="text-base">
-                    Check availability and reserve your date today
+                    {cta?.subtitle || "Check availability and reserve your date today"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

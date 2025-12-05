@@ -1,7 +1,7 @@
 import { Camera, Circle, Image } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
-import { useContent } from "@/hooks/useContent";
+import { useAllContent } from "@/hooks/useContent";
 import photoBoothImg from "@/assets/photo-booth.jpg";
 import booth360Img from "@/assets/360-booth.jpg";
 import backdropsImg from "@/assets/backdrops.jpg";
@@ -39,11 +39,29 @@ const defaultAsset = { image: photoBoothImg, icon: Camera };
 export const Services = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-  const { content: services } = useContent<typeof defaultServices>('services');
+  const { content: allContent } = useAllContent();
+
+  // Get services data from all content
+  const servicesData = allContent?.services;
+  
+  // Extract header and items based on structure
+  let servicesHeader: { titlePart1?: string; titlePart2?: string; titlePart3?: string; description?: string } | null = null;
+  let servicesArray: typeof defaultServices = defaultServices;
+  
+  if (servicesData) {
+    if (Array.isArray(servicesData)) {
+      // Old format: just an array
+      servicesArray = servicesData;
+    } else if (typeof servicesData === 'object') {
+      // New format: object with header and items
+      const servicesObj = servicesData as { header?: typeof servicesHeader; items?: typeof defaultServices };
+      servicesHeader = servicesObj.header || null;
+      servicesArray = servicesObj.items || defaultServices;
+    }
+  }
 
   // Filter only featured services
-  const featuredServices = (services && services.length > 0 ? services : defaultServices)
-    .filter(service => service.featured !== false);
+  const featuredServices = servicesArray.filter(service => service.featured !== false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -74,11 +92,12 @@ export const Services = () => {
           }`}
         >
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            Our <span className="text-primary italic">Signature</span> Services
+            {servicesHeader?.titlePart1 || 'Our'}{' '}
+            <span className="text-primary italic">{servicesHeader?.titlePart2 || 'Signature'}</span>
+            {servicesHeader?.titlePart3 ? ` ${servicesHeader.titlePart3}` : ' Services'}
           </h2>
           <p className="text-lg text-muted-foreground">
-            From intimate gatherings to grand celebrations, we bring the perfect blend of 
-            elegance and entertainment to every event.
+            {servicesHeader?.description || 'From intimate gatherings to grand celebrations, we bring the perfect blend of elegance and entertainment to every event.'}
           </p>
         </div>
 

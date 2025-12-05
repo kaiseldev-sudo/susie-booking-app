@@ -3,7 +3,9 @@ import { Calendar, Mail, Phone } from "lucide-react";
 import { useContent } from "@/hooks/useContent";
 
 const defaultCta = {
-  title: "Ready to Elevate Your Event?",
+  titlePart1: "Ready to",
+  titlePart2: "Elevate",
+  titlePart3: "Your Event?",
   description: "Limited spots available for popular dates. Book your photo booth experience today and create memories that last a lifetime.",
   primaryButtonText: "Inquire Now",
   secondaryButtonText: "Get a Quote",
@@ -29,7 +31,9 @@ export const CTA = () => {
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            Ready to <span className="text-primary italic">Elevate</span> Your Event?
+            {(ctaData.titlePart1 && ctaData.titlePart1.trim()) || 'Ready to'}{' '}
+            <span className="text-primary italic">{(ctaData.titlePart2 && ctaData.titlePart2.trim()) || 'Elevate'}</span>
+            {(ctaData.titlePart3 && ctaData.titlePart3.trim()) ? ` ${ctaData.titlePart3.trim()}` : ' Your Event?'}
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
             {ctaData.description}

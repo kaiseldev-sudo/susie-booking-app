@@ -54,7 +54,21 @@ interface ContentData {
     description: string;
     price: string;
     featured: boolean;
-  }>;
+  }> | {
+    header?: {
+      titlePart1?: string;
+      titlePart2?: string;
+      titlePart3?: string;
+      description?: string;
+    };
+    items?: Array<{
+      id: string;
+      name: string;
+      description: string;
+      price: string;
+      featured: boolean;
+    }>;
+  };
   photoBooths?: Array<{
     id: string;
     slug: string;
@@ -70,8 +84,47 @@ interface ContentData {
     inclusions: string;
     features: string;
   }>;
-  cta?: {
+  photography?: Array<{
+    id: string;
+    slug: string;
     title: string;
+    tagline: string;
+    description: string;
+    longDescription: string;
+    badge: string;
+    duration: string;
+    deliveryTime: string;
+    minBooking: string;
+    inclusions: string;
+    features: string;
+  }> | {
+    header?: {
+      sectionLabel?: string;
+      titlePart1?: string;
+      titlePart2?: string;
+      titlePart3?: string;
+      description?: string;
+    };
+    items?: Array<{
+      id: string;
+      slug: string;
+      title: string;
+      tagline: string;
+      description: string;
+      longDescription: string;
+      badge: string;
+      duration: string;
+      deliveryTime: string;
+      minBooking: string;
+      inclusions: string;
+      features: string;
+    }>;
+  };
+  cta?: {
+    titlePart1?: string;
+    titlePart2?: string;
+    titlePart3?: string;
+    title?: string; // Backward compatibility
     description: string;
     primaryButtonText: string;
     secondaryButtonText: string;
@@ -82,7 +135,21 @@ interface ContentData {
     event: string;
     text: string;
     rating: number;
-  }>;
+  }> | {
+    header?: {
+      titlePart1?: string;
+      titlePart2?: string;
+      titlePart3?: string;
+      description?: string;
+    };
+    items?: Array<{
+      id: string;
+      name: string;
+      event: string;
+      text: string;
+      rating: number;
+    }>;
+  };
   faqCategories?: Array<{
     id: string;
     category: string;
@@ -92,6 +159,20 @@ interface ContentData {
       answer: string;
     }>;
   }>;
+  footer?: {
+    description?: string;
+    copyrightText?: string;
+    services?: Array<{
+      id: string;
+      label: string;
+      url: string;
+    }>;
+    company?: Array<{
+      id: string;
+      label: string;
+      url: string;
+    }>;
+  };
   contact?: {
     email: string;
     phone: string;
@@ -139,7 +220,27 @@ export function useContent<T = ContentData>(section?: keyof ContentData): {
     try {
       const data = await fetchContent();
       if (section) {
-        setContent((data[section] as T) || null);
+        let sectionData = data[section];
+        
+        // Handle services section: extract items array if it's the new format
+        if (section === 'services' && sectionData && typeof sectionData === 'object' && !Array.isArray(sectionData)) {
+          const servicesData = sectionData as { header?: any; items?: any[] };
+          sectionData = servicesData.items || [];
+        }
+        
+        // Handle testimonials section: extract items array if it's the new format
+        if (section === 'testimonials' && sectionData && typeof sectionData === 'object' && !Array.isArray(sectionData)) {
+          const testimonialsData = sectionData as { header?: any; items?: any[] };
+          sectionData = testimonialsData.items || [];
+        }
+        
+        // Handle photography section: extract items array if it's the new format
+        if (section === 'photography' && sectionData && typeof sectionData === 'object' && !Array.isArray(sectionData)) {
+          const photographyData = sectionData as { header?: any; items?: any[] };
+          sectionData = photographyData.items || [];
+        }
+        
+        setContent((sectionData as T) || null);
       } else {
         setContent(data as T);
       }

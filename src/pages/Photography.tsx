@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import { Square, Camera, Sparkles, Star } from "lucide-react";
+import { Camera, Image, Video, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { PuffLoader } from "react-spinners";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useContent } from "@/hooks/useContent";
+import { useAllContent } from "@/hooks/useContent";
 import photoBoothImg from "@/assets/photo-booth.jpg";
 import booth360Img from "@/assets/360-booth.jpg";
 import backdropsImg from "@/assets/backdrops.jpg";
 
-interface PhotoBoothType {
+interface PhotographyType {
   id: string;
   slug: string;
   title: string;
@@ -19,96 +19,115 @@ interface PhotoBoothType {
   description: string;
   longDescription: string;
   badge: string;
-  setupTime: string;
-  capacity: string;
-  printTime: string;
+  duration: string;
+  deliveryTime: string;
   minBooking: string;
   inclusions: string;
   features: string;
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  "mirror-booth": Square,
-  "micro-photo-booth": Camera,
-  "360-video-booth": Sparkles,
-  "open-air-booth": Star,
+  "wedding-photography": Heart,
+  "event-photography": Camera,
+  "portrait-photography": Image,
+  "commercial-photography": Video,
 };
 
 const imageMap: Record<string, string> = {
-  "mirror-booth": photoBoothImg,
-  "micro-photo-booth": photoBoothImg,
-  "360-video-booth": booth360Img,
-  "open-air-booth": backdropsImg,
+  "wedding-photography": photoBoothImg,
+  "event-photography": booth360Img,
+  "portrait-photography": backdropsImg,
+  "commercial-photography": photoBoothImg,
 };
 
-const defaultBooths: PhotoBoothType[] = [
+const defaultPhotography: PhotographyType[] = [
   {
-    id: "mirror-booth",
-    slug: "mirror-booth",
-    title: "Mirror Booth",
-    tagline: "The Ultimate Interactive Photo Experience",
-    description: "Sleek, modern, and interactive full-length mirror experience.",
+    id: "wedding-photography",
+    slug: "wedding-photography",
+    title: "Wedding Photography",
+    tagline: "Capturing Your Perfect Day",
+    description: "Beautiful, timeless wedding photography that tells your unique love story.",
     longDescription: "",
     badge: "Most Popular",
-    setupTime: "45 mins",
-    capacity: "1-4 guests",
-    printTime: "10 seconds",
-    minBooking: "2 hours",
-    inclusions: "Professional setup & breakdown, Touch-screen mirror interface, Instant photo printing, Digital gallery access",
+    duration: "Full Day",
+    deliveryTime: "4-6 weeks",
+    minBooking: "6 hours",
+    inclusions: "Professional photographer, High-resolution images, Online gallery, Print release, Engagement session",
     features: "",
   },
   {
-    id: "micro-photo-booth",
-    slug: "micro-photo-booth",
-    title: "Micro Photo Booth",
-    tagline: "Compact Elegance, Maximum Fun",
-    description: "Compact, stylish, and ideal for smaller spaces.",
+    id: "event-photography",
+    slug: "event-photography",
+    title: "Event Photography",
+    tagline: "Document Every Moment",
+    description: "Professional coverage for corporate events, parties, and celebrations.",
     longDescription: "",
     badge: "",
-    setupTime: "30 mins",
-    capacity: "1-3 guests",
-    printTime: "8 seconds",
+    duration: "Custom",
+    deliveryTime: "1-2 weeks",
     minBooking: "2 hours",
-    inclusions: "Professional setup & breakdown, High-resolution camera system, Instant photo printing, Digital gallery access",
+    inclusions: "Professional photographer, High-resolution images, Online gallery, Print release, Social media images",
     features: "",
   },
   {
-    id: "360-video-booth",
-    slug: "360-video-booth",
-    title: "360 Video Booth",
-    tagline: "Capture Every Angle in Stunning Motion",
-    description: "Capture stunning slow-motion videos with a full 360 spin.",
+    id: "portrait-photography",
+    slug: "portrait-photography",
+    title: "Portrait Photography",
+    tagline: "Showcase Your Best Self",
+    description: "Professional portraits for individuals, families, and headshots.",
+    longDescription: "",
+    badge: "",
+    duration: "1-2 hours",
+    deliveryTime: "1 week",
+    minBooking: "1 hour",
+    inclusions: "Professional photographer, Studio or location shoot, High-resolution images, Online gallery, Print release",
+    features: "",
+  },
+  {
+    id: "commercial-photography",
+    slug: "commercial-photography",
+    title: "Commercial Photography",
+    tagline: "Elevate Your Brand",
+    description: "Professional product and brand photography for businesses.",
     longDescription: "",
     badge: "Premium",
-    setupTime: "60 mins",
-    capacity: "1-4 guests",
-    printTime: "30 seconds",
+    duration: "Custom",
+    deliveryTime: "2-3 weeks",
     minBooking: "3 hours",
-    inclusions: "Professional setup & breakdown, Premium lighting system, Digital gallery access",
-    features: "",
-  },
-  {
-    id: "open-air-booth",
-    slug: "open-air-booth",
-    title: "Open-Air Booth",
-    tagline: "Unlimited Space, Unlimited Creativity",
-    description: "Perfect for group shots with customizable backdrops.",
-    longDescription: "",
-    badge: "",
-    setupTime: "45 mins",
-    capacity: "1-10+ guests",
-    printTime: "10 seconds",
-    minBooking: "2 hours",
-    inclusions: "Professional setup & breakdown, Open-air photo station, Digital instant sharing",
+    inclusions: "Professional photographer, High-resolution images, Commercial license, Online gallery, Retouching services",
     features: "",
   },
 ];
 
-export default function PhotoBooth() {
+export default function Photography() {
   const [isLoading, setIsLoading] = useState(true);
-  const { content: photoBooths, loading: boothsLoading } = useContent<PhotoBoothType[]>('photoBooths');
+  const { content: allContent } = useAllContent();
+  
+  // Get photography data from all content
+  const photographyData = allContent?.photography;
+  
+  // Handle both old array format and new object format with header and items
+  let photographyTypes: PhotographyType[] = defaultPhotography;
+  let photographyHeader: {
+    sectionLabel?: string;
+    titlePart1?: string;
+    titlePart2?: string;
+    titlePart3?: string;
+    description?: string;
+  } | null = null;
+  
+  if (photographyData) {
+    if (Array.isArray(photographyData)) {
+      // Old format: array of items
+      photographyTypes = photographyData.length > 0 ? photographyData : defaultPhotography;
+    } else if (typeof photographyData === 'object' && 'items' in photographyData) {
+      // New format: object with header and items
+      photographyHeader = photographyData.header || null;
+      photographyTypes = (photographyData.items && photographyData.items.length > 0) ? photographyData.items : defaultPhotography;
+    }
+  }
 
-  const boothTypes = photoBooths && photoBooths.length > 0 ? photoBooths : defaultBooths;
+  const photographyLoading = false;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -117,7 +136,7 @@ export default function PhotoBooth() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading || boothsLoading) {
+  if (isLoading || photographyLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <PuffLoader size={60} color="hsl(var(--primary))" />
@@ -135,39 +154,39 @@ export default function PhotoBooth() {
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <p className="text-secondary font-medium mb-4 tracking-wide uppercase text-sm">
-                Photo Booth Options
+                {(photographyHeader?.sectionLabel && photographyHeader.sectionLabel.trim()) || 'Photography Services'}
               </p>
               <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                Choose Your <span className="text-primary italic">Perfect</span> Booth
+                {(photographyHeader?.titlePart1 && photographyHeader.titlePart1.trim()) || 'Capture Your'}{' '}
+                <span className="text-primary italic">{(photographyHeader?.titlePart2 && photographyHeader.titlePart2.trim()) || 'Perfect'}</span>
+                {(photographyHeader?.titlePart3 && photographyHeader.titlePart3.trim()) ? ` ${photographyHeader.titlePart3.trim()}` : ' Moments'}
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                From elegant mirror booths to classic photo experiences, we offer a variety of premium options 
-                to match your event style. All packages include professional service and 
-                unforgettable memories. Custom pricing available for every occasion.
+                {(photographyHeader?.description && photographyHeader.description.trim()) || 'From intimate weddings to corporate events, we offer professional photography services to preserve your most important memories. Custom packages available for every occasion.'}
               </p>
             </div>
           </div>
         </section>
 
-        {/* Booth Types Section */}
+        {/* Photography Types Section */}
         <section className="py-16">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-7xl mx-auto">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {boothTypes.map((booth) => {
-                  const IconComponent = iconMap[booth.slug] || Camera;
-                  const image = imageMap[booth.slug] || photoBoothImg;
-                  const inclusions = booth.inclusions ? booth.inclusions.split(',').map(s => s.trim()) : [];
+                {photographyTypes.map((photo) => {
+                  const IconComponent = iconMap[photo.slug] || Camera;
+                  const image = imageMap[photo.slug] || photoBoothImg;
+                  const inclusions = photo.inclusions ? photo.inclusions.split(',').map(s => s.trim()) : [];
 
                   return (
                     <Card
-                      key={booth.id}
+                      key={photo.id}
                       className="border-0 shadow-luxury hover:shadow-soft transition-smooth overflow-hidden group flex flex-col"
                     >
-                      <Link to={`/photo-booth/${booth.slug}`} className="block relative h-48 overflow-hidden">
+                      <Link to={`/photography/${photo.slug}`} className="block relative h-48 overflow-hidden">
                         <img
                           src={image}
-                          alt={booth.title}
+                          alt={photo.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-smooth duration-700"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent group-hover:from-black/60 transition-all duration-500" />
@@ -180,10 +199,10 @@ export default function PhotoBooth() {
                         </div>
                         
                         {/* Premium Badge */}
-                        {booth.badge && (
+                        {photo.badge && (
                           <div className="absolute top-4 left-4 z-10">
                             <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm">
-                              {booth.badge}
+                              {photo.badge}
                             </div>
                           </div>
                         )}
@@ -195,43 +214,37 @@ export default function PhotoBooth() {
                       <CardHeader className="pb-3">
                         <CardTitle className="text-xl mb-2">
                           <Link 
-                            to={`/photo-booth/${booth.slug}`}
+                            to={`/photography/${photo.slug}`}
                             className="hover:text-primary transition-colors duration-300"
                           >
-                            {booth.title}
+                            {photo.title}
                           </Link>
                         </CardTitle>
                         <CardDescription className="text-sm leading-relaxed">
-                          {booth.description}
+                          {photo.description}
                         </CardDescription>
                       </CardHeader>
                       
                       <CardContent className="space-y-4 flex-1 flex flex-col">
                         {/* Details Section */}
-                        {(booth.setupTime || booth.capacity || booth.printTime || booth.minBooking) && (
+                        {(photo.duration || photo.deliveryTime || photo.minBooking) && (
                           <div className="grid grid-cols-2 gap-3 pb-4 border-b border-border">
-                            {booth.setupTime && (
+                            {photo.duration && (
                               <div className="flex flex-col">
-                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Setup Time</span>
-                                <span className="text-sm font-medium mt-1">{booth.setupTime}</span>
+                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Duration</span>
+                                <span className="text-sm font-medium mt-1">{photo.duration}</span>
                               </div>
                             )}
-                            {booth.capacity && (
+                            {photo.deliveryTime && (
                               <div className="flex flex-col">
-                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Capacity</span>
-                                <span className="text-sm font-medium mt-1">{booth.capacity}</span>
+                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Delivery Time</span>
+                                <span className="text-sm font-medium mt-1">{photo.deliveryTime}</span>
                               </div>
                             )}
-                            {booth.printTime && (
-                              <div className="flex flex-col">
-                                <span className="text-xs text-muted-foreground uppercase tracking-wide">Print Time</span>
-                                <span className="text-sm font-medium mt-1">{booth.printTime}</span>
-                              </div>
-                            )}
-                            {booth.minBooking && (
+                            {photo.minBooking && (
                               <div className="flex flex-col">
                                 <span className="text-xs text-muted-foreground uppercase tracking-wide">Min Booking</span>
-                                <span className="text-sm font-medium mt-1">{booth.minBooking}</span>
+                                <span className="text-sm font-medium mt-1">{photo.minBooking}</span>
                               </div>
                             )}
                           </div>
@@ -261,7 +274,7 @@ export default function PhotoBooth() {
                             </a>
                           </Button>
                           <p className="text-xs text-center text-muted-foreground mt-2 italic">
-                            Pricing tailored to your event
+                            Pricing tailored to your needs
                           </p>
                         </div>
                       </CardContent>
@@ -283,7 +296,7 @@ export default function PhotoBooth() {
                     Have Questions? We're Here to Help
                   </CardTitle>
                   <CardDescription className="text-center">
-                    Our team is ready to help you choose the perfect photo booth for your event.
+                    Our team is ready to help you choose the perfect photography package for your event.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -317,3 +330,4 @@ export default function PhotoBooth() {
     </div>
   );
 }
+

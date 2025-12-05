@@ -5,8 +5,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useContent } from "@/hooks/useContent";
 
-const faqs = [
+const defaultFaqs = [
   {
     question: "How far in advance should I book?",
     answer: "We recommend booking at least 2-3 months in advance, especially for popular dates like weekends and holidays. However, we always try to accommodate last-minute requests when possible, so don't hesitate to reach out!"
@@ -31,17 +32,35 @@ const faqs = [
     question: "Can we customize the photo prints?",
     answer: "Yes! We offer completely custom photo templates designed to match your event theme, colors, and branding. You can include logos, event details, hashtags, and more. We'll work with you to create the perfect design."
   },
-  {
-    question: "How do guests receive their photos?",
-    answer: "Guests receive instant physical prints on-site. Additionally, all photos are uploaded to a private online gallery that's accessible within 24-48 hours. Guests can download, share on social media, or order additional prints."
-  },
-  {
-    question: "What happens if there's a technical issue?",
-    answer: "We always bring backup equipment to every event, and our experienced attendants are trained to handle any technical situations quickly. Your event will never be interrupted—we guarantee it!"
-  }
 ];
 
 export const FAQ = () => {
+  const { content: faqCategories, loading, error } = useContent<Array<{
+    id: string;
+    category: string;
+    questions: Array<{
+      id: string;
+      question: string;
+      answer: string;
+    }>;
+  }>>('faqCategories');
+
+  // Flatten all questions from all categories into a single array
+  const allFaqs = faqCategories && Array.isArray(faqCategories) && faqCategories.length > 0
+    ? faqCategories.flatMap(category => (category.questions || []).filter(q => q && q.question && q.answer))
+    : defaultFaqs;
+  
+  // Limit to first 6 FAQs for homepage
+  const faqs = allFaqs.slice(0, 6);
+
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('FAQ Categories:', faqCategories);
+    console.log('All FAQs:', allFaqs);
+    console.log('Display FAQs:', faqs);
+    if (error) console.error('FAQ Error:', error);
+  }
+
   return (
     <section id="faq" className="py-24">
       <div className="container mx-auto px-4 lg:px-8">
@@ -59,8 +78,8 @@ export const FAQ = () => {
           <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, index) => (
               <AccordionItem
-                key={index}
-                value={`item-${index}`}
+                key={faq.id || `faq-${index}`}
+                value={`item-${faq.id || index}`}
                 className="bg-card border border-border rounded-lg px-6 shadow-soft hover:shadow-luxury transition-smooth"
               >
                 <AccordionTrigger className="text-left font-sans font-semibold text-lg hover:text-primary py-6">
